@@ -239,8 +239,8 @@
 </div>
 
 <script>
-    // استبدل هذا الرابط بالرابط الخاص بـ Web App بعد النشر (Deploy)
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyL6FUoyolMxans5r6w21_H7LtetwWMrX6VBFkyn6e0S6eADZq5XRF8SVEiLrTq2a91/exec';
+    // الرابط الخاص بـ Web App
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVHLDmM3P79vFum20NcueD1qLdv3m_GuvDs7OGjNquLqhR_ofli0sl9n3RJdKOE57N/exec';
 
     function startApp(cat) {
         document.getElementById('selectionArea').classList.add('hidden');
@@ -280,19 +280,25 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="loader"></span> جاري الإرسال...';
 
-        fetch(SCRIPT_URL, { method: 'POST', body: new FormData(this) })
-        .then(res => res.json())
-        .then(res => {
-            if(res.result === 'success') {
-                document.getElementById('mainForm').classList.add('hidden');
-                document.getElementById('backBtn').classList.add('hidden');
-                document.getElementById('successMsg').classList.remove('hidden');
-            } else {
-                throw new Error();
-            }
+        // إرسال البيانات باستخدام FormData
+        const formData = new FormData(this);
+
+        // استخدام fetch مع تعديل المعالجة لضمان النجاح حتى في حالات CORS البسيطة
+        fetch(SCRIPT_URL, { 
+            method: 'POST', 
+            body: formData,
+            mode: 'no-cors' // تجنب مشاكل CORS في المتصفح عند الإرسال لـ Google Apps Script
         })
-        .catch(() => {
-            alert("حدث خطأ أثناء الإرسال، يرجى المحاولة لاحقاً.");
+        .then(() => {
+            // في وضع no-cors لا يمكننا قراءة الرد، لذا نفترض النجاح إذا لم يحدث خطأ في الشبكة
+            document.getElementById('mainForm').classList.add('hidden');
+            document.getElementById('backBtn').classList.add('hidden');
+            document.getElementById('successMsg').classList.remove('hidden');
+            window.scrollTo(0,0);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert("حدث خطأ أثناء الإرسال. يرجى التأكد من اتصال الإنترنت أو المحاولة لاحقاً.");
             btn.disabled = false;
             btn.innerText = "إرسال طلب التسجيل";
         });
